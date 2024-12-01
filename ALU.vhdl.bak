@@ -1,0 +1,51 @@
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+--look at the C Z stuff
+
+entity ALU is
+    port(ALU_A, ALU_B: in std_logic_vector(15 downto 0);
+        C: in std_logic;
+        ir3: in std_logic_vector(15 downto 0); -- 14-12
+        Output: out std_logic_vector(15 downto 0);
+        C_out,Z_out: out std_logic
+    );
+end entity ALU;
+
+architecture arch of ALU is
+    signal carry_buf : std_logic_vector(0 downto 0):= "0";
+	 signal sum_buf : std_logic_vector(16 downto 0):= (others=>'0'); -- First term has carry
+    signal nand_buf : std_logic_vector(15 downto 0):= (others=>'0');
+    signal NorPair : std_logic_vector(7 downto 0):= (others => '0');
+    signal ALU_out: std_logic_vector(15 downto 0);
+    signal ALU_in_A: std_logic_vector(16 downto 0):= (others => '0');
+    signal ALU_in_B: std_logic_vector(16 downto 0):= (others => '0');
+    signal NandIns: std_logic:= '0';
+    signal NandAdd_C: std_logic:= '0';
+	 signal AWC_ACW: std_logic:= '0';
+
+begin
+	 NandIns <= (ir3(15) nor ir3(14)) and (ir3(13) and not ir3(12));
+	 
+	 ALU_out <= nand_buf when NandIns = '1' else
+			   sum_buf(15 downto 0);
+    Output <= ALU_out;
+    
+    ALU_in_A(15 downto 0) <= ALU_A;
+    NandAdd_C <= (ir3(15) nor ir3(14)) and (ir3(13) nand ir3(12)) and ir3(2);
+    ALU_in_B(15 downto 0) <= not ALU_B when NandAdd_C = '1' else
+                ALU_B;
+    
+    sum_buf <= std_logic_vector(unsigned(ALU_in_A) + unsigned(ALU_in_B) + unsigned(carry_buf));
+    C_out <=  sum_buf(16);
+    carry_buf(0) <= C when AWC_ACW = '1' else 
+                 '0';
+    nand_buf <= ALU_in_A(15 downto 0) nand ALU_in_B(15 downto 0);
+    
+    AWC_ACW <= ir3(1) and ir3(0) and (ir3(15) nor ir3(14));
+    Nors: for i in 0 to 7 generate
+        NorPair(i) <= ALU_out(2*i) nor ALU_out(2*i + 1);
+    end generate Nors;
+
+    Z_out <= NorPair(7) and NorPair(6) and NorPair(5) and NorPair(4) and NorPair(3) and NorPair(2) and NorPair(1) and NorPair(0);
+end arch;

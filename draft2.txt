@@ -1,0 +1,301 @@
+library ieee; 
+use ieee.std_logic_1164.all; 
+use ieee.numeric_std.all; 
+
+
+
+entity pipeline is
+port (pc : out std_logic_vector(15 downto 0); clock : in std_logic);
+end pipeline;
+
+
+architecture bhv of pipeline is
+
+--signal clock: std_logic := '1';
+--constant clk_period : time := 20 ns;
+--clock <= not clock after clk_period/2 ;
+
+
+type mem is array(1023 downto 0) of std_logic_vector(15 downto 0);	
+signal mem_reg : mem := (
+		1 => "0011000000000000",
+		2 => "0011000000000000",
+		others=>("0000000000000000"));
+
+		
+type regfile is array(7 downto 0) of std_logic_vector(15 downto 0);	
+signal RF : regfile := ( 	
+		others=>("0000000000000000"));
+
+
+signal is_it_load, load_wait_over, pc_change, C, Z, C_out, C_alu_out, C_fwd : std_logic := '0'; 
+signal pc_change_wait_counter : integer := 0;
+signal alu_out, alu_out_reg, alu_out_fwd_reg, alu_a, alu_b, mem_read_out : std_logic_vector(15 downto 0) := "0000000000000000";
+signal ir1, ir2, ir3, ir4, ir5 : std_logic_vector(15 downto 0) := "0000000000000000";
+signal ctr1, ctr2, ctr3, ctr4 : std_logic_vector(3 downto 0) := "0000";  -- C write, Z write, mem write, reg write
+signal Ext6, Ext9, Imm_times_2_6, Imm_times_2_9 : std_logic_vector(15 downto 0) := "0000000000000000";
+
+begin
+--------------------------------------------------------------------------------------------------------------------------------------
+	
+	
+	Ext6(15 downto 5) <= (others => ir2(5));
+	Ext6(4 downto 0) <= ir2(4 downto 0);
+
+	Ext9(15 downto 8) <= (others => ir2(8));
+	Ext9(8 downto 0) <= ir2(8 downto 0);
+	
+	Imm_times_2_6 <= std_logic_vector(unsigned(Ext6) + unsigned(Ext6));
+	Imm_times_2_9 <= std_logic_vector(unsigned(Ext9) + unsigned(Ext9));
+	
+	alu_out <= std_logic_vector(unsigned(alu_a) + unsigned(alu_b));	
+	
+
+--------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+Instr_Fetch : process(clock)
+begin
+	
+	if(clock' event and clock='0') then
+	
+		--load check
+		if (is_it_load = '1' and load_wait_over = '0') then
+			ir1 <= ir1;
+			RF(0) <= RF(0);
+			load_wait_over <= '1';
+		else
+			ir1 <= mem_reg(to_integer(unsigned(RF(0)(9 downto 0))));
+			RF(0) <= std_logic_vector(unsigned(RF(0)) + 1);
+			load_wait_over <= '0';
+		end if;
+		
+		
+		--pc changing check
+		if (pc_change_wait_counter = 0) then
+			if (pc_change = '1') then
+				pc_change_wait_counter <= 1;
+			end if;
+		elsif (pc_change_wait_counter = 4) then
+			pc_change_wait_counter <= 0;
+		else 
+			pc_change_wait_counter <= pc_change_wait_counter + 1;
+		end if;	
+		
+	end if;
+end process;
+
+
+--------------------------------------------------------------------------------------------------------------------------------------
+
+
+Instr_Decode : process(ir1, clock)
+begin
+
+
+	if (ir1(15 downto 12) = "0011" or ir1(14 downto 12) = "0100") then
+		is_it_load <= '1';
+	else
+		is_it_load <= '0';
+	end if;
+	
+	-- if pc changes	
+	pc_change <= ir1(15);
+		
+	
+	-- mem write and reg write
+	if(clock' event and clock='0' and is_it_load = '0' and pc_change_wait_counter = 0) then
+		if (ir1(15 downto 14) = "00" or  ir1(14 downto 12) = "100" or ir1(15 downto 12) = "1101") then
+			ctr1(0) <= '1';
+			ctr1(1) <= '0';
+		elsif (ir1(15 downto 12) = "0101") then
+			ctr1(1) <= '1';
+			ctr1(0) <= '0';
+		else 
+			ctr1(1 downto 0) <= "00";
+		end if;	
+	
+	ir2 <= ir1;
+	end if;
+	
+	
+	-- C write and Z write
+	if(clock' event and clock='0' and is_it_load = '0' and pc_change_wait_counter = 0) then
+		if (ir1(15 downto 13) = "000") then
+			ctr1(3 downto 2) <= "11";
+		elsif (ir1(15 downto 13) = "000" or ir1(15 downto 12) = "0010" or ir1(15 downto 12) = "0100") then
+			ctr1(3 downto 2) <= "01";
+		else 
+			ctr1(3 downto 2) <= "00";
+		end if;
+	end if;
+	
+end process;
+
+
+--------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+Reg_Read : process(clock)
+begin
+	if(clock' event and clock='0') then
+	
+		--ADD/NAND
+		if (ir2(15 downto 12) = "0001" or ir2(15 downto 12) = "0010") then
+			if (ir3(15 downto 12) = "0001" or ir3(15 downto 12) = "0010") then 
+				if (ir3(5 downto 3) = ir2(8 downto 6)) then
+					 alu_b <= alu_out;
+					 alu_a <= RF(to_integer(unsigned(ir2(11 downto 9))));
+				elsif (ir3(5 downto 3) = ir2(11 downto 9)) then
+					 alu_a <= alu_out;
+					 alu_b <= RF(to_integer(unsigned(ir2(8 downto 6))));
+				else
+					alu_a <= RF(to_integer(unsigned(ir2(11 downto 9))));
+					alu_b <= RF(to_integer(unsigned(ir2(8 downto 6))));
+				end if;
+			
+			elsif (ir3(15 downto 12) = "0000" and ir3(8 downto 6) = ir2(8 downto 6)) then
+				alu_b <= alu_out;
+				alu_a <= RF(to_integer(unsigned(ir2(11 downto 9))));
+				
+			elsif (ir3(15 downto 12) = "0000" and ir3(8 downto 6) = ir2(11 downto 9)) then
+				alu_a <= alu_out;
+				alu_b <= RF(to_integer(unsigned(ir2(8 downto 6))));
+			
+			else
+				alu_a <= RF(to_integer(unsigned(ir2(11 downto 9))));
+				alu_b <= RF(to_integer(unsigned(ir2(8 downto 6))));
+			end if;
+			
+		--ADI	
+		elsif (ir2(15 downto 12) = "0000") then
+			alu_b <= Ext6;
+			if (ir3(15 downto 12) = "0001" or ir3(15 downto 12) = "0010") then 
+				if (ir3(5 downto 3) = ir2(11 downto 9)) then
+					 alu_a <= alu_out;
+				else
+					alu_a <= RF(to_integer(unsigned(ir2(11 downto 9))));
+				end if;
+			
+			elsif (ir3(15 downto 12) = "0000" and ir3(8 downto 6) = ir2(11 downto 9)) then
+				alu_a <= alu_out;
+			
+			else
+				alu_a <= RF(to_integer(unsigned(ir2(11 downto 9))));
+			end if;
+			
+		--LW/SW
+		elsif (ir2(15 downto 13) = "010") then
+			alu_a <= Ext6;
+			if (ir3(15 downto 12) = "0001" or ir3(15 downto 12) = "0010") then 
+				if (ir3(5 downto 3) = ir2(8 downto 6)) then
+					 alu_b <= alu_out;
+				else
+					alu_b <= RF(to_integer(unsigned(ir2(8 downto 6))));
+				end if;
+			
+			elsif (ir3(15 downto 12) = "0000" and ir3(8 downto 6) = ir2(8 downto 6)) then
+				alu_b <= alu_out;
+			
+			else
+				alu_b <= RF(to_integer(unsigned(ir2(8 downto 6))));
+			end if;
+			
+		--JRI
+		elsif (ir2(15 downto 12) = "1111") then
+			alu_b <= Imm_times_2_6;
+			if (ir3(15 downto 12) = "0001" or ir3(15 downto 12) = "0010") then 
+				if (ir3(5 downto 3) = ir2(11 downto 9)) then
+					 alu_a <= alu_out;
+				else
+					alu_a <= RF(to_integer(unsigned(ir2(11 downto 9))));
+				end if;
+			
+			elsif (ir3(15 downto 12) = "0000" and ir3(8 downto 6) = ir2(11 downto 9)) then
+				alu_a <= alu_out;
+			
+			else
+				alu_a <= RF(to_integer(unsigned(ir2(11 downto 9))));
+			end if;
+			
+		--BEQ/BLT/BLE/JAL
+		elsif (ir2(15 downto 13) = "100") then
+			alu_a <= RF(0);
+			alu_b <= Imm_times_2_6;	
+		elsif (ir2(15 downto 12) = "1100") then
+			alu_a <= RF(0);
+			alu_b <= Imm_times_2_9;
+			
+		end if;
+	ir3 <= ir2;
+	ctr2 <= ctr1;
+	end if;
+end process;
+
+
+--------------------------------------------------------------------------------------------------------------------------------------
+
+Execution : process(clock)
+begin
+	if(clock' event and clock='0') then
+		alu_out_reg <= alu_out;
+		C_out <= C_alu_out;
+		ir4 <= ir3;
+		ctr3 <= ctr2;
+	end if;
+
+end process;
+
+
+--------------------------------------------------------------------------------------------------------------------------------------
+
+
+Memory_Read : process(clock)
+begin
+	if(clock' event and clock='0') then
+		mem_read_out <= mem_reg(to_integer(unsigned(alu_out_reg)));
+		alu_out_fwd_reg <= alu_out_reg;
+		C_fwd <= C_out;
+		ir5 <= ir4;
+		ctr4 <= ctr3;
+	end if;
+
+end process;
+
+
+--------------------------------------------------------------------------------------------------------------------------------------
+
+
+Writing : process(clock)
+begin
+	if(clock' event and clock='0') then
+		
+		-- mem write
+		if (ctr4(1) = '1') then
+			mem_reg(to_integer(unsigned(alu_out_fwd_reg))) <= RF(to_integer(unsigned(ir5(11 downto 9))));
+		end if;	
+			
+		-- reg write
+		if (ctr4(0) = '1') then
+			if (ir5(15 downto 14) = "00" and (ir5(13) xor ir5(12)) = '1') then
+				RF(to_integer(unsigned(ir5(5 downto 3)))) <= alu_out_fwd_reg;
+			elsif (ir5(15 downto 12) = "0000") then
+				RF(to_integer(unsigned(ir5(8 downto 6)))) <= alu_out_fwd_reg;
+			elsif (ir5(15 downto 12) = "0011") then
+				RF(to_integer(unsigned(ir5(11 downto 9))))(15 downto 9) <= "0000000";
+				RF(to_integer(unsigned(ir5(11 downto 9))))(8 downto 0) <= ir5(8 downto 0);
+			elsif (ir5(15 downto 12) = "0100" or ir5(15 downto 13) = "100" or ir5(15 downto 12) = "1100" or ir5(15 downto 12) = "1111") then
+				RF(0) <= alu_out_fwd_reg;
+			elsif (ir5(15 downto 12) = "1101") then
+				RF(0) <= RF(to_integer(unsigned(ir5(8 downto 6))));
+			end if;
+		end if;
+				
+	end if;
+end process;
+
+pc <= RF(0);
+
+end bhv;

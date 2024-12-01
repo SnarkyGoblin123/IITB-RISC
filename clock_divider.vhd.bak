@@ -1,0 +1,49 @@
+library ieee; 
+use ieee.std_logic_1164.all; 
+use ieee.numeric_std.all; 
+
+
+entity clock_divider is 
+port( clock : in std_logic; 
+reset:in std_logic; 
+outclk : out std_logic); 
+end clock_divider; 
+
+
+architecture bhv of clock_divider is 
+
+signal ctr:integer := 0;
+signal outp: std_logic := '0';
+signal freq:integer := 480;
+ 
+
+begin
+clock_proc:process(clock,reset) 
+begin 
+if(clock' event and clock='1') then 
+if(reset='1') then 
+ctr <= 0;
+else 
+if (ctr=50000000/(2*freq)) then
+if (outp='1') then
+outp <= '0';
+else 
+outp <= '1';
+end if;
+ctr<=0;
+else 
+ctr<=ctr+1;
+end if;
+end if; 
+end if;
+
+outclk<=outp;
+ 
+end process; 
+
+
+
+
+
+
+end bhv;

@@ -1,0 +1,181 @@
+m255
+K4
+z2
+!s11e vcom 2020.1 2020.02, Feb 28 2020
+13
+!s112 1.1
+!i10d 8192
+!i10e 25
+!i10f 100
+cModel Technology
+Z0 dC:/Users/Tamojeet/Downloads/Pipe_V4/Pipe(2)/simulation/modelsim
+Ealu
+Z1 w1683390004
+Z2 DPx4 ieee 11 numeric_std 0 22 aU^R8eGcicLcUFIaBQSL>3
+Z3 DPx3 std 6 textio 0 22 zE1`LPoLg^DX3Oz^4Fj1K3
+Z4 DPx4 ieee 14 std_logic_1164 0 22 cVAk:aDinOX8^VGI1ekP<3
+!i122 2
+R0
+Z5 8C:/Users/Tamojeet/Downloads/Pipe_V4/Pipe(2)/ALU_V2.vhdl
+Z6 FC:/Users/Tamojeet/Downloads/Pipe_V4/Pipe(2)/ALU_V2.vhdl
+l0
+L6 1
+VR9EIUS4j2>JMdHkjSoWKV2
+!s100 e8QXU4cWEiaW>_EC[@2VO2
+Z7 OV;C;2020.1;71
+31
+Z8 !s110 1683396499
+!i10b 1
+Z9 !s108 1683396499.000000
+Z10 !s90 -reportprogress|300|-93|-work|work|C:/Users/Tamojeet/Downloads/Pipe_V4/Pipe(2)/ALU_V2.vhdl|
+Z11 !s107 C:/Users/Tamojeet/Downloads/Pipe_V4/Pipe(2)/ALU_V2.vhdl|
+!i113 1
+Z12 o-93 -work work
+Z13 tExplicit 1 CvgOpt 0
+Aarch
+R2
+R3
+R4
+DEx4 work 3 alu 0 22 R9EIUS4j2>JMdHkjSoWKV2
+!i122 2
+l28
+L15 86
+VhU<39ol:IF6@e4WI4QOF`0
+!s100 54X_3oUN2e5:[ezI2iEUK2
+R7
+31
+R8
+!i10b 1
+R9
+R10
+R11
+!i113 1
+R12
+R13
+Edut
+R1
+R3
+R4
+!i122 1
+R0
+Z14 8C:/Users/Tamojeet/Downloads/Pipe_V4/Pipe(2)/DUT.vhdl
+Z15 FC:/Users/Tamojeet/Downloads/Pipe_V4/Pipe(2)/DUT.vhdl
+l0
+L7 1
+VbD6>J@H5=z?EKPS3=4ZNA2
+!s100 U]`?O5f?8iIoeKeD0Z8<A1
+R7
+31
+R8
+!i10b 1
+R9
+Z16 !s90 -reportprogress|300|-93|-work|work|C:/Users/Tamojeet/Downloads/Pipe_V4/Pipe(2)/DUT.vhdl|
+Z17 !s107 C:/Users/Tamojeet/Downloads/Pipe_V4/Pipe(2)/DUT.vhdl|
+!i113 1
+R12
+R13
+Adutwrap
+R3
+R4
+DEx4 work 3 dut 0 22 bD6>J@H5=z?EKPS3=4ZNA2
+!i122 1
+l18
+L12 23
+VA^fNNQTUB;@JB0MDQ>@@I0
+!s100 W`]EiSoneTo66oT5b@o1P2
+R7
+31
+R8
+!i10b 1
+R9
+R16
+R17
+!i113 1
+R12
+R13
+Epipeline
+Z18 w1683396410
+R2
+R3
+R4
+!i122 0
+R0
+Z19 8C:/Users/Tamojeet/Downloads/Pipe_V4/Pipe(2)/Pipe_V2.vhd
+Z20 FC:/Users/Tamojeet/Downloads/Pipe_V4/Pipe(2)/Pipe_V2.vhd
+l0
+L7 1
+Vd`TdB2W3g0lYbOfkM9Azj0
+!s100 f4d^4i8A?cGSZLH`K4;XI0
+R7
+31
+R8
+!i10b 1
+Z21 !s108 1683396498.000000
+Z22 !s90 -reportprogress|300|-93|-work|work|C:/Users/Tamojeet/Downloads/Pipe_V4/Pipe(2)/Pipe_V2.vhd|
+Z23 !s107 C:/Users/Tamojeet/Downloads/Pipe_V4/Pipe(2)/Pipe_V2.vhd|
+!i113 1
+R12
+R13
+Abhv
+R2
+R3
+R4
+DEx4 work 8 pipeline 0 22 d`TdB2W3g0lYbOfkM9Azj0
+!i122 0
+l68
+L14 883
+VMJC?EWNnYgbLh`V_XjP8^3
+!s100 YO`mC;<]<K5U_?9iW=1SF3
+R7
+31
+R8
+!i10b 1
+R21
+R22
+R23
+!i113 1
+R12
+R13
+Etestbench
+R1
+R2
+R4
+R3
+!i122 3
+R0
+Z24 8C:/Users/Tamojeet/Downloads/Pipe_V4/Pipe(2)/Testbench.vhdl
+Z25 FC:/Users/Tamojeet/Downloads/Pipe_V4/Pipe(2)/Testbench.vhdl
+l0
+L8 1
+VX]m]1MDMA@7O24c`6LXR@2
+!s100 D1hG?8UQH0T6]Mb<G5dDJ1
+R7
+31
+R8
+!i10b 1
+R9
+Z26 !s90 -reportprogress|300|-93|-work|work|C:/Users/Tamojeet/Downloads/Pipe_V4/Pipe(2)/Testbench.vhdl|
+!s107 C:/Users/Tamojeet/Downloads/Pipe_V4/Pipe(2)/Testbench.vhdl|
+!i113 1
+R12
+R13
+Abehave
+R2
+R4
+R3
+DEx4 work 9 testbench 0 22 X]m]1MDMA@7O24c`6LXR@2
+!i122 3
+l70
+L10 150
+VY1;8K]_KKgdARlPikNbZS1
+!s100 jb[b2`FI8bEOmhFn;zDhR3
+R7
+31
+R8
+!i10b 1
+R9
+R26
+Z27 !s107 C:/Users/Tamojeet/Downloads/Pipe_V4/Pipe(2)/Testbench.vhdl|
+!i113 1
+R12
+R13

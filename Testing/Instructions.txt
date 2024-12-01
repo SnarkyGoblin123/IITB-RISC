@@ -1,0 +1,7 @@
+lli r1 39
+adi r2 r1 19
+adi r4 r1 10
+ada r1 r3 r5
+ada r2 r6 r7
+adi r1 r2 10
+ada r7 r1 r6
